@@ -1,0 +1,56 @@
+---
+title: "Assignment 2"
+author: "keerthi Tiyyagura"
+date: "2023-09-24"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+```{r}
+library(lpSolve)#Calling the library
+```
+
+```{r}
+f.obj<-c(420,360,300,420,360,300,420,360,300)#Coefficients from the Objective Function,Z;
+```
+
+```{r}
+f.con<-matrix(c(1,1,1,0,0,0,0,0,0,
+                #Coefficients from the Capacity constraints of Plant1
+                0,0,0,1,1,1,0,0,0,#Plant2
+                0,0,0,0,0,0,1,1,1,#Plant3
+                1,0,0,1,0,0,1,0,0,
+                #Coefficients from the Sales Forecasts constraints of size Large
+                0,1,0,0,1,0,0,1,0,#Medium
+                0,0,1,0,0,1,0,0,1,#Small
+                20,15,12,0,0,0,0,0,0,
+                #Coefficients from Storage Space Constraints of Plant1
+                0,0,0,20,15,12,0,0,0,#Plant2
+                0,0,0,0,0,0,20,15,12,#Plant3
+                900,900,900,-750,-750,-750,0,0,0,
+                #Coefficients of To avoid the employees layoff constraints
+                0,0,0,450,450,450,-900,-900,-900,
+                450,450,450,0,0,0,-750,-750,-750),nrow=12,byrow=TRUE)
+```
+
+```{r}
+f.dir<-c("<=","<=","<=","<=","<=","<=","<=","<=","<=","=","=","=")#Inequality and equality signs from the total constraints
+```
+
+```{r}
+f.rhs<-c(750,900,450,900,1200,750,13000,12000,5000,0,0,0)
+#Right hand side Coefficients of total constraints
+```
+
+```{r}
+lp("max",f.obj,f.con,f.dir,f.rhs)
+#final value of Z
+```
+
+```{r}
+lp("max",f.obj,f.con,f.dir,f.rhs,int.vec = 1:9)$solution
+#Variables final values
+```
+
+
