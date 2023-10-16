@@ -1,0 +1,106 @@
+---
+title: "Assignment 3"
+author: "keerthi Tiyyagura"
+date: "2023-10-15"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+The given problem belongs to Unbalanced Transportation Problem,here the supply is higher than the demand:
+
+Let, a and b are the variables for quantities of product for Plant A and Plant B.
+
+a1, be the quantity produced by Plant A to Warehouse 1
+
+b1, be the quantity produced by Plant B to Warehouse 1 
+
+a2, be the quantity produced by Plant A to Warehouse 2
+
+b2, be the quantity produced by Plant B to Warehouse 2
+
+a3, be the quantity produced by Plant A to Warehouse 3
+
+b3, be the quantity produced by Plant B to Warehouse 3
+
+In the given problem,the supply and demand are unequal, so a dummy destination is introduced in the equation to make it equal to the supply and demand.We can assume the dummy variable as Storage here.Thus,
+
+a4, be the quantity produced by Plant A to Storage
+
+b4, be the quantity produced by Plant B to Storage
+
+The Objective function of combined cost of production and shipping is:
+
+Z=(622)a1+(614)a2+(630)a3+(0)a4+(641)b1+(645)b2+(649)b3+(0)b4
+
+The Constraints are:
+
+Supply Constraints for Plant A and Plant B:
+
+a1+a2+a3+a4=100
+
+b1+b2+b3+b4=120
+
+Total Production capacity of supply is:100+120=220
+
+Demand Constraints for Warehouse 1,2 and 3 are:
+
+x1+x2=80
+
+y1+y2=60
+
+z1+z2=70
+
+Total Demand on monthly is: 80+60+70=210
+
+Therefore,(220-210)=10(Dummy source)
+
+Non-negative constraints are:
+
+a1,a2,a3,a4,b1,b2,b3,b4>=0
+```{r}
+library(lpSolve)
+```
+#Set up costs matrix
+```{r}
+Cost <- c(22,14,30,16,20,24)
+
+rhs <- c(100,120,80,60,70)
+
+#The Objective function matrix of combined cost of production and shipping:
+costs <- matrix(c(622,614,630,0,
+                  641,645,649,0),nrow = 2,byrow = TRUE)
+
+#The Column and Row names of the matrix are:
+colnames(costs) <- c("Warehouse1","Warehouse2","Warehouse3","Dummy Source")
+rownames(costs) <- c("Plant A","Plant B")
+
+costs
+```
+#Set up constraint signs and right-hand sides
+```{r}
+row.signs <- rep("=", 2)
+row.rhs <- c(100,120)
+col.signs <- rep("=", 4)
+col.rhs <- c(80,60,70,10)
+```
+#Getting the Minimum output of combined cost by using lp.transport function
+```{r}
+lptrans <- lp.transport(costs, "min", row.signs, row.rhs, col.signs, col.rhs)
+
+#Optimal solution of variables
+lptrans$solution
+```
+It means the matrix is giving the optimal solution in a way that,to send 60 units of production to Warehouse 2 and 40 units of production to Warehouse 3 out of 100 units supply from Plant A and out of 120 units supply from Plant B,it is better to send 80 units of production to Warehouse 1 and 30 units of production to Warehouse 3 and 10 units of production to Storage,it is Dummy source.
+
+#Getting the Objective Function of model
+```{r}
+lptrans$objval
+
+lptrans
+```
+It is clear that the minimum combined cost of production and shipping of AEDs of both Plant A and Plant B is: $ 132,790.
+
+
+
