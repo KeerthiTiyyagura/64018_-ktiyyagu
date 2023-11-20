@@ -1,0 +1,151 @@
+---
+title: "QMM Assignment_Module 11"
+author: "keerthi Tiyyagura"
+date: "2023-11-19"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+Directions:
+
+AP is a shipping service that guarantees overnight delivery of packages in the continental US.The company has various hubs at major cities and airports across the country. Packages arereceived at hubs, and then shipped to intermediate hubs or to their final destination.
+The manager of the AP hub in Cleveland is concerned about labor costs, and is interested indetermining the most effective way to schedule workers. The hub operates seven days a week,and the number of packages it handles varies from one day to another. The table below provides an estimate of the number of workers needed each day of the week.
+
+```{r}
+# Using library lpsolve
+library(lpSolve)
+```
+
+```{r}
+workersdays <- matrix(c("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday",18,27,22,26,25,21,19),ncol = 2,byrow = FALSE)
+
+colnames(workersdays) <- c("Day of the week","Workers required")
+
+row.names(workersdays) <- c(rep("-",7))
+
+as.table(workersdays)
+```
+Package handlers at AP are guaranteed a five-day work week with two consecutive days off. The base wage for the handlers is $750 per week. Workers working on Saturday or Sunday receive an additional $25 per day. The possible shifts and salaries for package handlers are:
+```{r}
+shift_wages <- matrix(c(1,2,3,4,5,6,7,"Sun and Mon","Mon and Tue","Tue and Wed","Wed and Thu","Thu and Fri","Fri and Sat","Sat and Sun","$775","$800","$800","$800","$800","$775","$750"),ncol=3,byrow=F)
+
+colnames(shift_wages) <- c("Shift","Days off","Wages")
+
+as.table(shift_wages)
+```
+The manager wants to keep the total wage expenses as low as possible while ensuring that there are sufficient number of workers available each day. 
+
+The objective function,
+z=775(x1)+800(x2)+800(x3)+800(x4)+800(x5)+775(x6)+750(x7)
+
+The decision variables are x1,x2,x3,x4,x5,x6,x7, where:
+
+x1,no.of workers in shift1 with Sun and Mon dayoff
+
+x2,no.of workers in shift2 with Mon and Tues dayoff
+
+x3,no.of workers in shift3 with Tues and Wed dayoff
+
+x4,no.of workers in shift4 with Wed and Thurs dayoff
+
+x5,no.of workers in shift5 with Thurs and Fri dayoff
+
+x6,no.of workers in shift6 with Fri and Sat dayoff
+
+x7,no.of workers in shift7 with Sat and Sun dayoff
+
+
+The constraints are as follows:
+
+0(x1)+1(x2)+1(x3)+1(x4)+1(x5)+1(x6)+0(x7) >= 18 #Sunday needs 18 workers where shift 1 and 7 is dayoff
+
+0(x1)+0(x2)+1(x3)+1(x4)+1(x5)+ 1(x6)+1(x7) >= 27 #Monday needs 27 workers where shift 1 and 2 is dayoff
+
+1(x1)+0(x2)+0(x3)+1(x4)+1(x5)+ 1(x6)+1(x7) >= 22 #Tuesday needs 22 workers where shift 2 and 3 is dayoff
+
+1(x1)+1(x2)+0(x3)+0(x4)+1(x5)+ 1(x6)+1(x7) >= 26 #Wednesday needs 26 workers where shift 3 and 4 is dayoff
+
+1(x1)+1(x2)+1(x3)+0(x4)+0(x5) +1(x6)+1(x7) >= 25 #Thursday needs 25 workers where shift 4 and 5 is dayoff
+
+1(x1)+1(x2)+1(x3)+1(x4)+0(x5)+ 0(x6)+1(x7) >= 21 #Friday needs 21 workers where shift 5 and 6 is dayoff
+
+1(x1)+1(x2)+1(x3)+1(x4)+1(x5)+ 0(x6)+0(x7) >= 19 #Saturday needs 19 workers where shift 6 and 7 is dayoff
+
+
+```{r}
+obj_function <- c(775,800,800,800,800,775,750)
+
+workers_shift <- matrix(c(0,1,1,1,1,1,0,
+                          0,0,1,1,1,1,1,
+                          1,0,0,1,1,1,1,
+                          1,1,0,0,1,1,1,
+                          1,1,1,0,0,1,1,
+                          1,1,1,1,0,0,1,
+                          1,1,1,1,1,0,0),nrow = 7,byrow = TRUE)
+
+row.names(workers_shift) <- c("Sun off","Mon off","Tue off","Wed off","Thur off","Fri off","Sat off")
+
+colnames(workers_shift)<-c("shift1","shift2","shift3","shift4","shift5","shift6","shift7")
+
+workers_shift
+```
+What was the total cost? 
+```{r}
+#Set equality signs for row and column
+row_signs <-  rep(">=", 7)
+
+#RHS coefficients
+row_rhs <- c(18, 27, 22, 26, 25, 21, 19)
+
+min_solve <-  lp("min", obj_function, workers_shift, row_signs, row_rhs, int.vec = 1:7)
+
+cat("Total cost (Total weekly salaries) is :","$", min_solve$objval, "\n")
+```
+
+```{r}
+# It shows the no. of workers corresponding to each shift
+min_solve$solution
+```
+According to the above solution the no. of workers will be assigned as follows:
+```{r}
+workers_per_day <-matrix(c(0, 4, 5, 0, 8, 1, 0,
+                           0, 0, 5, 0, 8, 1, 13,
+                           2, 0, 0, 0, 8, 1, 13,
+                           2, 4, 0, 0, 8, 1, 13,
+                           2, 4, 5, 0, 0, 1, 13,
+                           2, 4, 5, 0, 0, 0, 13,
+                           2, 4, 5, 0, 8, 0, 0), ncol = 7, byrow = TRUE)
+
+colnames(workers_per_day) <- c("Shift1", "Shift2", "Shift3", "Shift4", "Shift5", "Shift6", "Shift7")
+
+row.names(workers_per_day) <- c("Sunday", "Monday", "Tuesday", "Wednesdsay", "Thursday", "Friday", "Saturday")
+
+workers_per_day
+```
+How many workers are available each day?
+```{r}
+rowSums(workers_per_day)
+```
+
+#Total cost (Total weekly salaries) is : $ 25675
+
+#Number of workers will be available each day is:
+
+Day      -    Workers
+
+Sunday   -   18 
+
+Monday   -   27 
+
+Tuesday  -   24 
+
+Wednesday -   28 
+
+Thursday  -  25 
+
+Friday    -  24 
+
+Saturday  -  19 .
+
+
